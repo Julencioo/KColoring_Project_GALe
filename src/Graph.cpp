@@ -1,33 +1,47 @@
+//
+// Created by YOUR_NAME (YOUR_LOGIN)
+//
+
 #include "Graph.h"
-#include <iostream>  // std::istream
 
-// Constructor: inicializa n y crea adj con n listas vacías
-Graph::Graph(int n_) : n(n_), adj(n_) {
-    // adj tiene tamaño n_, cada adj[v] empieza como vector<int> vacío
+Graph::Graph(int V) : V(V), E(0) {
+    adj.resize(V);
 }
 
-// Añade arista no dirigida (u - v)
 void Graph::add_edge(int u, int v) {
-    // asumimos 0 <= u, v < n
-    adj[u].push_back(v);
-    adj[v].push_back(u);  // no dirigido
+    // Check bounds
+    if (u >= 0 && u < V && v >= 0 && v < V) {
+        adj[u].push_back(v);
+        adj[v].push_back(u); // Undirected graph
+        E++;
+    }
 }
 
-// Lee un grafo no dirigido del flujo 'in' con formato:
-// n m
-// u v
-// ...
-Graph read_graph(std::istream &in) {
-    int n, m;
-    in >> n >> m;
+int Graph::num_vertices() const {
+    return V;
+}
 
-    Graph g(n);
+int Graph::num_edges() const {
+    return E;
+}
 
-    for (int i = 0; i < m; ++i) {
-        int u, v;
-        in >> u >> v;
-        g.add_edge(u, v);
+int Graph::degree(int v) const {
+    if (v >= 0 && v < V) {
+        return (int)adj[v].size();
     }
+    return 0;
+}
 
-    return g;
+const std::vector<int>& Graph::neighbors(int v) const {
+    return adj[v];
+}
+
+void Graph::print() const {
+    for (int v = 0; v < V; ++v) {
+        std::cout << v << ": ";
+        for (int neighbor : adj[v]) {
+            std::cout << neighbor << " ";
+        }
+        std::cout << "\n";
+    }
 }

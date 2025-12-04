@@ -1,32 +1,40 @@
+//
+// Created by Juelen and Eduardo (YOUR_LOGIN)
+//
+
 #ifndef GRAPH_H
 #define GRAPH_H
 
 #include <vector>
-#include <iosfwd>  // std::istream
+#include <iostream>
 
-// Grafo NO dirigido
 class Graph {
+private:
+    int V; // Number of vertices
+    int E; // Number of edges
+    std::vector<std::vector<int>> adj; // Adjacency list
+
 public:
-    int n;  // número de vértices (0..n-1)
-    std::vector<std::vector<int>> adj;  // listas de adyacencia
+    // Constructor
+    Graph(int V);
 
-    // Constructor: crea grafo con n vértices y sin aristas
-    explicit Graph(int n_);
-
-    // Añadir arista NO dirigida (u - v)
+    // Add an undirected edge
     void add_edge(int u, int v);
 
-    // Número de vértices (azúcar sintáctico)
-    int num_vertices() const { return n; }
+    // Get number of vertices
+    int num_vertices() const;
 
-    // Vecinos de v (versión solo lectura)
-    const std::vector<int>& neighbors(int v) const { return adj[v]; }
+    // Get number of edges
+    int num_edges() const;
 
-    // Grado de v
-    int degree(int v) const { return static_cast<int>(adj[v].size()); }
+    // Get degree of a vertex
+    int degree(int v) const;
+
+    // Get neighbors of a vertex
+    const std::vector<int>& neighbors(int v) const;
+
+    // Debug: Print graph structure
+    void print() const;
 };
 
-// Función libre para leer un grafo de un flujo (stdin, archivo…)
-Graph read_graph(std::istream &in);
-
-#endif // GRAPH_H
+#endif //GRAPH_H
