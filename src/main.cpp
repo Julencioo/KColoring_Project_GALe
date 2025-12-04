@@ -1,24 +1,36 @@
+//
+// Created by YOUR_NAME (YOUR_LOGIN)
+//
+
 #include <iostream>
 #include "Graph.h"
+#include "DSatur.h"
 
 int main() {
-    // Creamos un grafo con 4 vértices: 0,1,2,3
-    Graph g(4);
+    std::cout << "--- GALe Project: Graph Coloring (DSATUR) ---\n";
 
-    // Añadimos algunas aristas: 0-1, 0-2, 1-3
+    // Example Graph (Triangle with an extra edge)
+    // 0 -- 1
+    // |  /
+    // | /
+    // 2 -- 3
+
+    Graph g(4);
     g.add_edge(0, 1);
     g.add_edge(0, 2);
-    g.add_edge(1, 3);
+    g.add_edge(1, 2); // 0-1-2 form a triangle -> requires 3 colors
+    g.add_edge(2, 3);
 
-    std::cout << "Graph has " << g.num_vertices() << " vertices.\n";
+    std::cout << "Graph initialized: " << g.num_vertices() << " vertices, "
+              << g.num_edges() << " edges.\n";
 
-    // Imprimimos la lista de adyacencias
-    for (int v = 0; v < g.num_vertices(); ++v) {
-        std::cout << "Neighbors of " << v << ": ";
-        for (int u : g.neighbors(v)) {
-            std::cout << u << " ";
-        }
-        std::cout << "\n";
+    DSatur solver;
+    ColoringResult res = solver.solve(g);
+
+    std::cout << "Chromatic Number found: " << res.chromatic_number << "\n";
+    std::cout << "Vertex Colors:\n";
+    for(int i=0; i<4; ++i) {
+        std::cout << "Vertex " << i << ": Color " << res.assignment[i] << "\n";
     }
 
     return 0;
