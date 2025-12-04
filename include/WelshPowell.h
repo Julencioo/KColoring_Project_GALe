@@ -1,0 +1,13 @@
+//
+// Created by emped on 03/12/2025.
+//
+
+#ifndef KCOLORING_PROJECT_GALE_WELSHPOWELL_H
+#define KCOLORING_PROJECT_GALE_WELSHPOWELL_H
+
+
+class WelshPowell {
+};
+
+
+#endif //KCOLORING_PROJECT_GALE_WELSHPOWELL_H

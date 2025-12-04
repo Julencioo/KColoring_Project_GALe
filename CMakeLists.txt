@@ -8,6 +8,10 @@ add_executable(KColoring
         src/main.cpp
         src/Graph.cpp
         src/KColorExact.cpp
+        src/WelshPowell.cpp
+        include/WelshPowell.h
+        src/DSATUR.cpp
+        include/DSATUR.h
 )
 
 # Para que pueda encontrar "Graph.h" y "KColorExact.h"
