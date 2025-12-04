@@ -125,6 +125,15 @@ Algorithm DSATUR(Graph G):
 
     Return assignment
 ```
+The total complexity is the sum of the complexities of its dominant parts.
+
+$$O(\text{Total}) = O(V^2 + E \log V)$$
+
+* The term **$O(V^2)$** arises from the linear search for the vertex with the highest saturation degree in each of the $V$ steps.
+* The term **$O(E \log V)$** arises from updating the saturation set of neighbors throughout the execution of the algorithm.
+
+This complexity, which lies between $O(V^2)$ (for sparse graphs) and $O(V^2 \log V)$ (for dense graphs where $E \approx V^2$), 
+demonstrates why DSATUR is an **efficient heuristic algorithm** and significantly faster than an exact algorithm like **Backtracking** (which is exponential).
 #### **2.3. Justification of Choice**
 We chose DSATUR as our primary heuristic for the following reasons:
 1.  **Dynamic Efficiency:** By prioritizing the "most constrained" vertices (those with the most colored neighbors), DSATUR typically finds a chromatic number much closer to the optimal $\chi(G)$ than static methods, without the exponential cost of exact algorithms.
