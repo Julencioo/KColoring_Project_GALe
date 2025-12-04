@@ -59,14 +59,72 @@ We will benchmark these algorithms on a dataset of over 30 graphs to evaluate th
 
 The core heuristic is based on the **saturation degree** of a vertex, defined as the number of *different* colors currently assigned to its adjacent neighbors. By prioritizing vertices with high saturation, the algorithm handles the most constrained parts of the graph first.
 
-#### **2.2. Algorithmic Steps**
-1.  **Ordering:** The algorithm starts with an uncolored graph.
-2.  **Selection:** In each step, the algorithm selects the uncolored vertex with the **highest saturation degree**.
-    * *Tie-Breaking 1:* If there is a tie in saturation, pick the vertex among them with the **highest degree** (number of uncolored neighbors).
-    * *Tie-Breaking 2:* If a tie persists, pick any of the tied vertices arbitrarily (e.g., the one with the lowest ID).
-3.  **Assignment:** Assign the smallest valid color index ($0, 1, 2, \dots$) that does not conflict with the current neighbors.
-4.  **Update:** Update the saturation degrees of the neighbors and repeat the process until all vertices are colored.
+#### **2.2. Algorithmic Steps (Pseudocode)**
 
+The following pseudocode describes our specific implementation of the DSATUR heuristic, detailing the priority selection criteria (Saturation Degree followed by Vertex Degree as a tie-breaker).
+
+```text
+Algorithm DSATUR(Graph G):
+    Input: A graph G = (V, E)
+    Output: A valid coloring assignment for all vertices in V
+
+    // 1. Initialization
+    // Complexity: O(V) - We iterate through all vertices once to initialize structures.
+    Let assignment[v] = -1 for all v in V                 
+    Let saturation[v] = {} (empty RB-Tree/Set) for all v in V
+    Let degree[v] = deg(v) for all v in V
+    Let uncolored_count = |V|
+
+    // 2. Main Loop
+    // Complexity: The loop runs exactly |V| times (once for each vertex).
+    While uncolored_count > 0:
+        
+        // --- Selection Heuristic ---
+        // Complexity: O(V) per iteration
+        // In this implementation, we linearly scan all vertices to find the best candidate.
+        best_vertex = null
+        max_sat = -1
+        max_deg = -1
+
+        For each vertex v in V:
+            If assignment[v] == -1:
+                current_sat = size(saturation[v])  // O(1) for std::set size
+                current_deg = degree[v]
+
+                // Primary Criteria: Maximum Saturation Degree
+                If current_sat > max_sat:
+                    best_vertex = v
+                    max_sat = current_sat
+                    max_deg = current_deg
+                
+                // Secondary Criteria (Tie-Breaker): Maximum Degree
+                Else If current_sat == max_sat:
+                    If current_deg > max_deg:
+                        best_vertex = v
+                        max_sat = current_sat
+                        max_deg = current_deg
+        
+        // --- Assignment ---
+        // Complexity: O(k * log(Delta)) 
+        // We check colors 0, 1... until valid. 'k' is the chromatic number found so far.
+        // Checking existence in std::set is O(log(current_saturation)).
+        color = 0
+        While color in saturation[best_vertex]:
+            color = color + 1
+        
+        assignment[best_vertex] = color
+        uncolored_count = uncolored_count - 1
+
+        // --- Update Neighbors ---
+        // Complexity: O(deg(best_vertex) * log(Delta))
+        // We update saturation for all uncolored neighbors. 
+        // Insertion into std::set is logarithmic with respect to the number of colors.
+        For each neighbor u of best_vertex:
+            If assignment[u] == -1:
+                Add color to saturation[u]
+
+    Return assignment
+```
 #### **2.3. Justification of Choice**
 We chose DSATUR as our primary heuristic for the following reasons:
 1.  **Dynamic Efficiency:** By prioritizing the "most constrained" vertices (those with the most colored neighbors), DSATUR typically finds a chromatic number much closer to the optimal $\chi(G)$ than static methods, without the exponential cost of exact algorithms.
