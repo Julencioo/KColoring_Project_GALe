@@ -3,35 +3,53 @@
 //
 
 #include <iostream>
+#include <chrono> // For measuring time
 #include "Graph.h"
 #include "DSatur.h"
 
-int main() {
-    std::cout << "--- GALe Project: Graph Coloring (DSATUR) ---\n";
+int main(int argc, char* argv[]) {
+    Graph g;
 
-    // Example Graph (Triangle with an extra edge)
-    // 0 -- 1
-    // |  /
-    // | /
-    // 2 -- 3
+    // Check if filename is provided
+    if (argc < 2) {
+        std::cout << "Usage: " << argv[0] << " <graph_file.col>\n";
+        std::cout << "Running default internal test...\n";
 
-    Graph g(4);
-    g.add_edge(0, 1);
-    g.add_edge(0, 2);
-    g.add_edge(1, 2); // 0-1-2 form a triangle -> requires 3 colors
-    g.add_edge(2, 3);
+        // Default test case (Triangle)
+        g.resize(4);
+        g.add_edge(0, 1);
+        g.add_edge(0, 2);
+        g.add_edge(1, 2);
+        g.add_edge(2, 3);
+    } else {
+        std::string filename = argv[1];
+        std::cout << "Loading graph from " << filename << "...\n";
+        if (!g.load_from_file(filename)) {
+            return 1;
+        }
+    }
 
-    std::cout << "Graph initialized: " << g.num_vertices() << " vertices, "
-              << g.num_edges() << " edges.\n";
+    std::cout << "Graph Specs: V=" << g.num_vertices() << ", E=" << g.num_edges() << "\n";
+
+    // Measure Time
+    auto start = std::chrono::high_resolution_clock::now();
 
     DSatur solver;
-    ColoringResult res = solver.solve(g);
+    ColoringResult result = solver.solve(g);
 
-    std::cout << "Chromatic Number found: " << res.chromatic_number << "\n";
-    std::cout << "Vertex Colors:\n";
-    for(int i=0; i<4; ++i) {
-        std::cout << "Vertex " << i << ": Color " << res.assignment[i] << "\n";
-    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+
+    // Output for human reading
+    std::cout << "--- Results ---\n";
+    std::cout << "Algorithm: DSATUR\n";
+    std::cout << "Chromatic Number (k): " << result.chromatic_number << "\n";
+    std::cout << "Time: " << elapsed.count() << " seconds\n";
+
+    // Output valid for CSV parsing (Automation)
+    // Format: CSV_RESULT,Vertices,Edges,Colors,Time
+    std::cout << "CSV_RESULT," << g.num_vertices() << "," << g.num_edges()
+              << "," << result.chromatic_number << "," << elapsed.count() << "\n";
 
     return 0;
 }

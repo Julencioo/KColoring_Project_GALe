@@ -1,12 +1,15 @@
 //
-// Created by Juelen and Eduardo (YOUR_LOGIN)
+// Created by YOUR_NAME (YOUR_LOGIN)
 //
 
 #ifndef GRAPH_H
 #define GRAPH_H
 
 #include <vector>
+#include <string>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 class Graph {
 private:
@@ -15,25 +18,29 @@ private:
     std::vector<std::vector<int>> adj; // Adjacency list
 
 public:
-    // Constructor
+    // Default Constructor
+    Graph();
+
+    // Constructor with size
     Graph(int V);
+
+    // Initialize/Reset graph with V vertices
+    void resize(int V);
 
     // Add an undirected edge
     void add_edge(int u, int v);
 
-    // Get number of vertices
+    // Load graph from a DIMACS format file
+    // Returns true if successful, false otherwise
+    bool load_from_file(const std::string& filename);
+
+    // Getters
     int num_vertices() const;
-
-    // Get number of edges
     int num_edges() const;
-
-    // Get degree of a vertex
     int degree(int v) const;
-
-    // Get neighbors of a vertex
     const std::vector<int>& neighbors(int v) const;
 
-    // Debug: Print graph structure
+    // Debug
     void print() const;
 };
 
