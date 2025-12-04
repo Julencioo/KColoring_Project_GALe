@@ -1,18 +1,35 @@
+<br>
+
 # Brno University of Technology
 ## Faculty of Information Technology
 
-**Course:** Graph Algorithms and Optimization (GALe)
-**Project Topic 13:** Comparison - Graph Coloring
+
 
 ---
 
-# **Project Documentation**
+
+
+
+# **PROJECT DOCUMENTATION**
+
+### **Course:** Graph Algorithms and Optimization (GALe)
+### **Topic 13:** Comparison - Graph Coloring
+
+<br>
 
 **Authors:**
-* **Eduardo Martín Postigo** (xmartie01)
-* **Julen Mendoza Borrero** (xmendo00) **Date:** December 4, 2025
+
+| Student Name | Login (ID) |
+| :--- | :--- |
+| **Eduardo Martín Postigo** | `xmartie01` |
+| **Julen Mendoza Borrero** | `xmendo00` | <br>
+
+
+**Date:** December 4, 2025
+
 
 ---
+<div style="page-break-after: always;"></div>
 
 ## **Index**
 1.  [Introduction](#1-introduction)
