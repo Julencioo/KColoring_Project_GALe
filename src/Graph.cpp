@@ -3,7 +3,7 @@
 
 // Constructor: inicializa n y crea adj con n listas vacías
 Graph::Graph(int n_) : n(n_), adj(n_) {
-    // adj tiene tamaño n_, cada adj[v] empieza como vector<int> vacío
+    // adj[0], adj[1], ..., adj[n-1] empiezan como vectores<int> vacíos
 }
 
 // Añade arista no dirigida (u - v)
@@ -14,7 +14,9 @@ void Graph::add_edge(int u, int v) {
 }
 
 // Lee un grafo no dirigido del flujo 'in' con formato:
+//
 // n m
+// u v
 // u v
 // ...
 Graph read_graph(std::istream &in) {

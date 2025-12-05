@@ -2,9 +2,9 @@
 #define GRAPH_H
 
 #include <vector>
-#include <iosfwd>  // std::istream
+#include <iosfwd>  // forward declaration de std::istream
 
-// Grafo NO dirigido
+// Grafo NO dirigido, simple
 class Graph {
 public:
     int n;  // número de vértices (0..n-1)
@@ -16,17 +16,25 @@ public:
     // Añadir arista NO dirigida (u - v)
     void add_edge(int u, int v);
 
-    // Número de vértices (azúcar sintáctico)
+    // Helpers opcionales (por comodidad en main y algoritmos):
     int num_vertices() const { return n; }
 
-    // Vecinos de v (versión solo lectura)
     const std::vector<int>& neighbors(int v) const { return adj[v]; }
 
-    // Grado de v
     int degree(int v) const { return static_cast<int>(adj[v].size()); }
 };
 
-// Función libre para leer un grafo de un flujo (stdin, archivo…)
+// Lee un grafo no dirigido desde un flujo (stdin, archivo, etc.)
+// Formato de entrada esperado:
+//
+//   n m
+//   u1 v1
+//   u2 v2
+//   ...
+//   um vm
+//
+// donde n = nº de vértices, m = nº de aristas,
+// y cada (u, v) es una arista no dirigida entre 0 <= u, v < n.
 Graph read_graph(std::istream &in);
 
 #endif // GRAPH_H
