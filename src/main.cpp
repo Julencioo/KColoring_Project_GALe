@@ -5,10 +5,12 @@
 #include "KColorExact.h"
 
 int main() {
+    using Clock = std::chrono::steady_clock;
+
+    // Leer grafo desde stdin
     Graph g = read_graph(std::cin);
 
     std::vector<int> colors;
-    using Clock = std::chrono::steady_clock;
 
     auto start = Clock::now();
     int k = chromatic_number(g, colors);
@@ -17,11 +19,7 @@ int main() {
     auto elapsed_us =
         std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-    // (Opcional: imprimir algo bonito para humanos)
-    std::cout << "Chromatic number = " << k << "\n";
-    std::cout << "Execution time: " << elapsed_us << " microseconds\n";
-
-    // ⚠️ ESTA LÍNEA ES LA IMPORTANTE PARA PYTHON:
+    // *** LÍNEA QUE TIENE QUE SALIR SÍ O SÍ ***
     std::cout << "RESULT"
               << " algo=exact"
               << " n=" << g.n

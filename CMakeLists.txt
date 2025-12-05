@@ -12,7 +12,6 @@ add_executable(KColoring
         include/DSATUR.h
 )
 
-# Para que pueda encontrar "Graph.h" y "KColorExact.h"
 target_include_directories(KColoring PRIVATE
         ${CMAKE_SOURCE_DIR}/include
 )
