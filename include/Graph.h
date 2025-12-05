@@ -1,40 +1,53 @@
+//
+// Created by YOUR_NAME (YOUR_LOGIN)
+//
+
 #ifndef GRAPH_H
 #define GRAPH_H
 
 #include <vector>
-#include <iosfwd>  // forward declaration de std::istream
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
-// Grafo NO dirigido, simple
 class Graph {
+private:
+    int V; // Number of vertices
+    int E; // Number of edges
+    std::vector<std::vector<int>> adj; // Adjacency list
+
 public:
-    int n;  // número de vértices (0..n-1)
-    std::vector<std::vector<int>> adj;  // listas de adyacencia
+    // Default Constructor
+    Graph();
 
-    // Constructor: crea grafo con n vértices y sin aristas
-    explicit Graph(int n_);
+    // Constructor with size
+    Graph(int V);
 
-    // Añadir arista NO dirigida (u - v)
+    // Initialize/Reset graph with V vertices
+    void resize(int V);
+
+    // Add an undirected edge
     void add_edge(int u, int v);
 
-    // Helpers opcionales (por comodidad en main y algoritmos):
-    int num_vertices() const { return n; }
+    // Load graph from a DIMACS format file (.col)
+    // Returns true if successful, false otherwise
+    bool load_from_file(const std::string& filename);
 
-    const std::vector<int>& neighbors(int v) const { return adj[v]; }
+    // NUEVA FUNCION: Load graph from a simple text file (.txt)
+    // Format expected: "u v" on each line
+    bool load_from_file2(const std::string& filename);
 
-    int degree(int v) const { return static_cast<int>(adj[v].size()); }
+    // Getters
+    int num_vertices() const;
+    int num_edges() const;
+    int degree(int v) const;
+
+    // Returns a reference to the list of neighbors for vertex v
+    const std::vector<int>& neighbors(int v) const;
+
+    // Debug
+    void print() const;
 };
 
-// Lee un grafo no dirigido desde un flujo (stdin, archivo, etc.)
-// Formato de entrada esperado:
-//
-//   n m
-//   u1 v1
-//   u2 v2
-//   ...
-//   um vm
-//
-// donde n = nº de vértices, m = nº de aristas,
-// y cada (u, v) es una arista no dirigida entre 0 <= u, v < n.
-Graph read_graph(std::istream &in);
-
-#endif // GRAPH_H
+#endif //GRAPH_H

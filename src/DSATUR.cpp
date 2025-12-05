@@ -2,8 +2,7 @@
 // Created by Eduardo Martín Postigo (xmartie01) on 04/12/2025.
 //
 
-
-#include "DSatur.h"
+#include "DSATUR.h"
 #include <vector>
 #include <set>
 #include <algorithm>
@@ -15,7 +14,6 @@ ColoringResult DSatur::solve(const Graph& g) {
     std::vector<int> assignment(n, -1);
 
     // Saturation: A set of unique colors used by neighbors for each vertex.
-    // The size of this set is the "Saturation Degree".
     std::vector<std::set<int>> neighbor_colors(n);
 
     // Pre-calculate degrees for the tie-breaking rule (Step 2b)
@@ -32,7 +30,7 @@ ColoringResult DSatur::solve(const Graph& g) {
         int max_deg = -1;
 
         // --- SELECTION HEURISTIC ---
-        for (int v = 0; v < n; ++v) { // Pre incremert
+        for (int v = 0; v < n; ++v) {
             if (assignment[v] == -1) { // Process only uncolored vertices
 
                 int current_sat = (int)neighbor_colors[v].size();
@@ -41,7 +39,6 @@ ColoringResult DSatur::solve(const Graph& g) {
                 bool is_better = false;
 
                 if (best_vertex == -1) {
-                    // First candidate found
                     is_better = true;
                 } else {
                     // 1. Primary Criteria: Max Saturation
@@ -64,6 +61,8 @@ ColoringResult DSatur::solve(const Graph& g) {
             }
         }
 
+        if (best_vertex == -1) break; // Should not happen if vertices_colored < n
+
         // --- COLOR ASSIGNMENT ---
         // Find the smallest color (0, 1, 2...) NOT in neighbor_colors[best_vertex]
         int color = 0;
@@ -75,7 +74,6 @@ ColoringResult DSatur::solve(const Graph& g) {
         vertices_colored++;
 
         // --- UPDATE NEIGHBORS ---
-        // Add this new color to the saturation set of all uncolored neighbors
         for (int neighbor : g.neighbors(best_vertex)) {
             if (assignment[neighbor] == -1) {
                 neighbor_colors[neighbor].insert(color);
@@ -83,11 +81,14 @@ ColoringResult DSatur::solve(const Graph& g) {
         }
     }
 
-    // Calculate the total number of colors used (chromatic number k)
+    // Calculate chromatic number
     int max_color_used = 0;
     for (int c : assignment) {
         if (c > max_color_used) max_color_used = c;
     }
 
-    return {max_color_used + 1, assignment};
+    // Handle edge case of empty graph
+    int k = (n == 0) ? 0 : (max_color_used + 1);
+
+    return {k, assignment};
 }

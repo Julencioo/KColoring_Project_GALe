@@ -8,16 +8,16 @@
 #include "Graph.h"
 #include <vector>
 
-// Struct to hold the results for experimentation/documentation
+// Struct to hold the results.
+// Defined here to avoid modifying Graph.h
 struct ColoringResult {
-    int chromatic_number;        // The 'k' in k-coloring (quality of solution)
-    std::vector<int> assignment; // assignment[v] = color
+    int chromatic_number;        // The 'k' (number of colors used)
+    std::vector<int> assignment; // assignment[v] = color_id
 };
 
 class DSatur {
 public:
     // Solves the graph coloring using the DSATUR heuristic
-    // Returns the number of colors used and the specific assignment
     ColoringResult solve(const Graph& g);
 };
 

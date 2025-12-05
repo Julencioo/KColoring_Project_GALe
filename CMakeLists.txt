@@ -1,17 +1,14 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.10)
 project(KColoring_Project_GALe)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 14)
 
-add_executable(KColoring
+# 1. Include the header directory so we can use #include "Graph.h" easily
+include_directories(include)
+
+# 2. Define the executable and LIST ALL .cpp FILES here
+add_executable(kcoloring
         src/main.cpp
         src/Graph.cpp
-        src/KColorExact.cpp
         src/DSATUR.cpp
-        include/DSATUR.h
-)
-
-target_include_directories(KColoring PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
 )
