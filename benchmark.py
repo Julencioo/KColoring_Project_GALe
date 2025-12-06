@@ -3,89 +3,107 @@ import glob
 import os
 import csv
 import time
+import sys
 
-# --- CONFIGURACIÓN ---
-# Ajusta esta ruta a tu ejecutable compilado.
-# En CLion suele ser: "./cmake-build-debug/K_Coloring_Project_GALe"
-# En Windows/VS puede ser: "./cmake-build-debug/Debug/K_Coloring_Project_GALe.exe"
-EJECUTABLE = "kcoloring2.exe"
+# --- CONFIGURATION ---
+NOMBRE_EJECUTABLE = "kcoloring4.exe"
 CARPETA_DATOS = "graphs"
 ARCHIVO_SALIDA = "resultados_comparativa.csv"
-TIMEOUT_SEG = 120  # Tiempo máximo por grafo para evitar bloqueos
+TIMEOUT_SEG = 60
+
+def buscar_ejecutable():
+    posibles_rutas = [
+        f"./cmake-build-debug/{NOMBRE_EJECUTABLE}",
+        f"./cmake-build-debug/{NOMBRE_EJECUTABLE}.exe",
+        f"./cmake-build-debug/Debug/{NOMBRE_EJECUTABLE}.exe",
+        f"./build/{NOMBRE_EJECUTABLE}",
+        f"./{NOMBRE_EJECUTABLE}"
+    ]
+    for ruta in posibles_rutas:
+        if os.path.exists(ruta):
+            return ruta
+    return None
+
+def procesar_salida(output_text, writer):
+    count = 0
+    for linea in output_text.splitlines():
+        if linea.startswith("CSV_RESULT"):
+            partes = linea.split(',')
+            if len(partes) >= 7:
+                row = {
+                    'Archivo': partes[2],
+                    'Algoritmo': partes[1],
+                    'Vertices': partes[3],
+                    'Aristas': partes[4],
+                    'Colores (k)': partes[5],
+                    'Tiempo (ns)': partes[6]  # CHANGED: Now storing nanoseconds
+                }
+                writer.writerow(row)
+                count += 1
+    return count
 
 def ejecutar_benchmark():
-    # Verificar si el ejecutable existe
-    if not os.path.exists(EJECUTABLE) and not os.path.exists(EJECUTABLE + ".exe"):
-        print(f"Error: No se encuentra el ejecutable en: {EJECUTABLE}")
-        print("Asegúrate de compilar el proyecto C++ primero.")
-        return
+    ruta_exe = buscar_ejecutable()
+    if not ruta_exe:
+        print(f"ERROR FATAL: No se encuentra el ejecutable '{NOMBRE_EJECUTABLE}'.")
+        sys.exit(1)
 
-    # Preparar el archivo CSV de salida
+    print(f"Ejecutable encontrado: {ruta_exe}")
+
     with open(ARCHIVO_SALIDA, 'w', newline='', encoding='utf-8') as csvfile:
-        columnas = ['Archivo', 'Algoritmo', 'Vertices', 'Aristas', 'Colores (k)', 'Tiempo (s)']
+        # CHANGED HEADER: 'Tiempo (ns)'
+        columnas = ['Archivo', 'Algoritmo', 'Vertices', 'Aristas', 'Colores (k)', 'Tiempo (ns)']
         writer = csv.DictWriter(csvfile, fieldnames=columnas)
         writer.writeheader()
 
-        # Buscar todos los archivos de grafos (.col y .txt)
-        archivos_grafos = glob.glob(os.path.join(CARPETA_DATOS, "*.col")) + \
-                          glob.glob(os.path.join(CARPETA_DATOS, "*.txt"))
-        archivos_grafos.sort()
+        archivos = glob.glob(os.path.join(CARPETA_DATOS, "*.col")) + \
+                   glob.glob(os.path.join(CARPETA_DATOS, "*.txt"))
+        archivos.sort()
 
-        if not archivos_grafos:
-            print(f"No se encontraron archivos en {CARPETA_DATOS}")
+        if not archivos:
+            print(f"No se encontraron archivos en '{CARPETA_DATOS}'")
             return
 
-        print(f"Iniciando pruebas en {len(archivos_grafos)} grafos...")
+        print(f"Procesando {len(archivos)} grafos...")
         print("-" * 60)
 
-        for ruta_grafo in archivos_grafos:
-            nombre_archivo = os.path.basename(ruta_grafo)
-            print(f"Procesando: {nombre_archivo} ...", end=" ", flush=True)
+        for ruta in archivos:
+            nombre = os.path.basename(ruta)
+            print(f"--> {nombre} ... ", end="", flush=True)
 
             try:
-                # Ejecutar tu programa C++: ./programa ruta_del_grafo
-                inicio = time.time()
                 resultado = subprocess.run(
-                    [EJECUTABLE, ruta_grafo],
+                    [ruta_exe, ruta],
                     capture_output=True,
                     text=True,
                     timeout=TIMEOUT_SEG
                 )
 
-                # Analizar la salida estándar (stdout) buscando líneas "CSV_RESULT"
-                lineas_procesadas = 0
-                for linea in resultado.stdout.splitlines():
-                    if linea.startswith("CSV_RESULT"):
-                        # Formato esperado: CSV_RESULT,Algoritmo,Archivo,V,E,k,Tiempo
-                        partes = linea.split(',')
-                        if len(partes) >= 7:
-                            row = {
-                                'Archivo': partes[2],
-                                'Algoritmo': partes[1],
-                                'Vertices': partes[3],
-                                'Aristas': partes[4],
-                                'Colores (k)': partes[5],
-                                'Tiempo (s)': partes[6]
-                            }
-                            writer.writerow(row)
-                            lineas_procesadas += 1
+                n = procesar_salida(resultado.stdout, writer)
+                csvfile.flush()
+                if n == 0:
+                    print("SIN DATOS")
+                else:
+                    print(f"OK ({n} algos)")
 
-                csvfile.flush() # Guardar cambios en disco inmediatamente
-                print(f"OK ({lineas_procesadas} resultados)")
+            except subprocess.TimeoutExpired as e:
+                print(f"TIMEOUT ({TIMEOUT_SEG}s)", end=" ")
+                texto_parcial = e.stdout if e.stdout else ""
+                n = procesar_salida(texto_parcial, writer)
 
-            except subprocess.TimeoutExpired:
-                print("TIMEOUT (El proceso tardó demasiado)")
-                # Registrar el timeout en el CSV para constancia
                 writer.writerow({
-                    'Archivo': nombre_archivo,
-                    'Algoritmo': 'TIMEOUT_GLOBAL',
-                    'Vertices': '-', 'Aristas': '-', 'Colores (k)': '-', 'Tiempo (s)': TIMEOUT_SEG
+                    'Archivo': nombre,
+                    'Algoritmo': 'EXACT_TIMEOUT',
+                    'Vertices': '-', 'Aristas': '-', 'Colores (k)': '-',
+                    'Tiempo (ns)': f">{TIMEOUT_SEG*1e9}" # Approximate ns for timeout
                 })
-            except Exception as e:
-                print(f"ERROR: {e}")
+                print(f"- Datos recuperados: {n}")
+
+            except Exception as ex:
+                print(f"ERROR SISTEMA: {ex}")
 
     print("-" * 60)
-    print(f"Benchmark finalizado. Datos guardados en {ARCHIVO_SALIDA}")
+    print(f"Resultados guardados en: {ARCHIVO_SALIDA}")
 
 if __name__ == "__main__":
     ejecutar_benchmark()
