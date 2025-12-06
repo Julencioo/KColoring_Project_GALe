@@ -1,15 +1,21 @@
+//
+// Created by YOUR_NAME (YOUR_LOGIN)
+//
+
 #ifndef KCOLOREXACT_H
 #define KCOLOREXACT_H
 
-#include <vector>
 #include "Graph.h"
+#include <vector>
 
-// Devuelve true si g es k-colorable y escribe la coloración en 'colors'.
-bool is_k_colorable(const Graph &g, int k, std::vector<int> &colors);
+// IMPORTANTE: Incluimos esto para que KColorExact reconozca el struct "ColoringResult"
+// que definimos anteriormente en DSATUR.h (o Graph.h).
+#include "DSATUR.h"
 
-// Calcula el número cromático buscándolo desde k=1 en adelante.
-// Devuelve el k mínimo tal que g es k-colorable, y deja la coloración en 'best_colors'.
-// Devuelve -1 solo si algo va MUY mal (en teoría no debería ocurrir).
-int chromatic_number(const Graph &g, std::vector<int> &best_colors);
+class KColorExact {
+public:
+    // Solves the graph coloring using Exact Backtracking.
+    ColoringResult solve(const Graph& g);
+};
 
-#endif // KCOLOREXACT_H
+#endif //KCOLOREXACT_H
