@@ -10,56 +10,63 @@
 #include "DSatur.h"
 #include "KColorExact.h"
 
-// Helper para medir tiempos de ejecución cortos promediando iteraciones
+// --- BENCHMARKING INTELIGENTE ---
+// Ejecuta la función hasta que se acumule suficiente tiempo para tener una medida precisa.
 template<typename Func>
-long long measure_avg_nanoseconds(Func func, int num_vertices) {
-    // Si el grafo es pequeño, repetimos muchas veces para capturar el tiempo
-    // Si es grande, menos repeticiones.
-    int iterations = 1;
-    if (num_vertices < 50) iterations = 5000;
-    else if (num_vertices < 200) iterations = 1000;
-    else if (num_vertices < 500) iterations = 100;
-    else iterations = 1;
+long long smart_benchmark_ns(Func func) {
+    // 1. Intento inicial (Single shot)
+    auto t1 = std::chrono::steady_clock::now();
+    func();
+    auto t2 = std::chrono::steady_clock::now();
 
-    auto start = std::chrono::steady_clock::now();
+    auto single_run_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-    for(int i = 0; i < iterations; ++i) {
-        func(); // Ejecutar algoritmo
+    // Si la ejecución tardó más de 1ms (1,000,000 ns), confiamos en la medida.
+    // Esto evita repetir algoritmos lentos (como Exact en grafos grandes).
+    if (single_run_ns > 1000000) {
+        return single_run_ns;
     }
 
-    auto end = std::chrono::steady_clock::now();
+    // 2. Si fue demasiado rápido (o 0), entramos en modo repetición.
+    // Repetimos hasta que pasen al menos 50ms para promediar.
+    long long count = 0;
+    auto start = std::chrono::steady_clock::now();
+    auto end = start;
 
-    // Calcular total y dividir por iteraciones para obtener el promedio por ejecución
+    // Límite de tiempo: 50ms (suficiente para tener precisión de ns)
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() < 50) {
+        func();
+        count++;
+        end = std::chrono::steady_clock::now();
+    }
+
     auto total_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    return total_ns / iterations;
+
+    // Evitar división por cero (improbable)
+    return (count > 0) ? (total_ns / count) : 0;
 }
 
 int main(int argc, char* argv[]) {
     Graph g;
     std::string filename;
 
-    // 1. Parseo de argumentos
+    // 1. Load Graph
     if (argc > 1) {
         filename = argv[1];
-    } else {
-        filename = "test_graph";
-        g.resize(4);
-        g.add_edge(0, 1); g.add_edge(0, 2); g.add_edge(1, 2); g.add_edge(2, 3);
-    }
-
-    // 2. Cargar Grafo
-    if (argc > 1) {
         bool success = false;
         if (filename.find(".txt") != std::string::npos) {
             success = g.load_from_file2(filename);
         } else {
             success = g.load_from_file(filename);
         }
-
         if (!success) {
             std::cerr << "Error loading file.\n";
             return 1;
         }
+    } else {
+        filename = "test_graph";
+        g.resize(4);
+        g.add_edge(0, 1); g.add_edge(0, 2); g.add_edge(1, 2); g.add_edge(2, 3);
     }
 
     // ---------------------------------------------------------
@@ -69,14 +76,14 @@ int main(int argc, char* argv[]) {
         DSatur solver;
         ColoringResult result;
 
-        // Ejecutamos una vez primero para obtener el resultado k (sin medir)
+        // 1. Obtener resultado k (primera ejecución)
         result = solver.solve(g);
 
-        // Medimos el tiempo promedio
-        long long elapsed_ns = measure_avg_nanoseconds([&]() {
-            DSatur s; // Creamos nueva instancia para no usar caché/estados previos
+        // 2. Medir tiempo con precisión (usando nueva instancia para no afectar estado)
+        long long elapsed_ns = smart_benchmark_ns([&]() {
+            DSatur s;
             s.solve(g);
-        }, g.num_vertices());
+        });
 
         std::cout << "CSV_RESULT,DSATUR," << filename << ","
                   << g.num_vertices() << "," << g.num_edges() << ","
@@ -87,27 +94,20 @@ int main(int argc, char* argv[]) {
     // ALGORITMO 2: EXACT BACKTRACKING
     // ---------------------------------------------------------
     {
-        // Para el exacto, NO hacemos 1000 iteraciones si es grande porque tardaría siglos.
-        // Solo aplicamos repetición si el grafo es muy pequeño (V < 20).
-
         KColorExact solver;
         ColoringResult result;
 
-        // Ejecución única para validación y resultados (puede ser lenta)
-        // Usamos un cronómetro simple aquí porque no queremos repetir la ejecución lenta
-        auto start = std::chrono::steady_clock::now();
+        // 1. Obtener resultado k (primera ejecución)
+        // Nota: En grafos grandes esto tardará, el script de Python controlará el timeout.
         result = solver.solve(g);
-        auto end = std::chrono::steady_clock::now();
 
-        long long elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-
-        // Si dio 0 (caso muy raro en exacto salvo grafos triviales), forzamos medición con repetición
-        if (elapsed_ns == 0 && g.num_vertices() < 20) {
-             elapsed_ns = measure_avg_nanoseconds([&]() {
-                KColorExact s;
-                s.solve(g);
-            }, g.num_vertices());
-        }
+        // 2. Medir tiempo con el mismo sistema inteligente.
+        // Si el paso 1 tardó mucho, smart_benchmark detectará >1ms y NO repetirá el bucle.
+        // Si fue instantáneo (grafos pequeños), repetirá hasta tener precisión.
+        long long elapsed_ns = smart_benchmark_ns([&]() {
+            KColorExact s;
+            s.solve(g);
+        });
 
         std::cout << "CSV_RESULT,EXACT," << filename << ","
                   << g.num_vertices() << "," << g.num_edges() << ","

@@ -6,7 +6,7 @@ import time
 import sys
 
 # --- CONFIGURATION ---
-NOMBRE_EJECUTABLE = "kcoloring4.exe"
+NOMBRE_EJECUTABLE = "kcoloring5.exe"
 CARPETA_DATOS = "graphs"
 ARCHIVO_SALIDA = "resultados_comparativa.csv"
 TIMEOUT_SEG = 60
